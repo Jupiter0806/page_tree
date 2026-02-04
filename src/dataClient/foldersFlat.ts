@@ -7,7 +7,7 @@ export type Folder = {
 
 export type Path = string;
 
-export const mockRoot: Record<Path, File | Folder> = {
+const mockRoot: Record<Path, File | Folder> = {
   "/root": { name: "root", type: "folder", path: "/root" },
   "/root/file1.txt": {
     name: "file1.txt",
