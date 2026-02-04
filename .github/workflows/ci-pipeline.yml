@@ -10,5 +10,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm i -g pnpm
+
       - name: Install dependencies
         run: pnpm install
+
+      - name: build
+        run: pnpm build
