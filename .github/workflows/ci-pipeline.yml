@@ -18,3 +18,11 @@ jobs:
 
       - name: build
         run: pnpm build
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heades/main' || startsWith(github.ref, 'refs/heades/releases/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: ./dist
+          retention-days: 1
