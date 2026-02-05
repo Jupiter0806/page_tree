@@ -6,14 +6,19 @@ import { Tree } from "./views/Tree/Tree.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { action, loader } from "./views/Tree/loader.ts";
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Tree />,
+      action: action,
+      loader: loader,
+    },
+  ],
   {
-    path: "/",
-    element: <Tree />,
-    action: action,
-    loader: loader,
+    basename: import.meta.env.BASE_URL,
   },
-]);
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
