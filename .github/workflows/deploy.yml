@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup pnpm
-        uses: npm i -pnpm
+        run: npm i -g pnpm
       - name: Install dependencies
         run: pnpm install
       - name: Build
