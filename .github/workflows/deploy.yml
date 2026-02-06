@@ -1,10 +1,9 @@
+# Simple workflow for deploying static content to GitHub Pages
 name: Deploy static content to Pages
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types:
-      - completed
+  # Runs on pushes targeting the default branch
+  push:
     branches: ["releases/1.0.0"]
 
   # Allows you to run this workflow manually from the Actions tab
@@ -25,28 +24,26 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    # Only deploy if the CI pipeline succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success'}}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact from CI pipeline
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-${{ github.event.workflow_run.head_sha}}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        run: npm i -g pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm build
       - name: Setup Pages
         uses: actions/configure-pages@v5
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # Upload entire repository
           path: "./dist"
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
