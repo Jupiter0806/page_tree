@@ -2,6 +2,8 @@ name: CI Pipeline
 
 on:
   push:
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -31,11 +33,11 @@ jobs:
 
   deploy:
     needs: build
+    environment:
+      name: github-pages
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Download artifact from CI pipeline
-        if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
         uses: actions/download-artifact@v4
         with:
           name: dist-${{ github.sha }}
