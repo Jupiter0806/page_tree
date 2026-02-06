@@ -24,17 +24,30 @@ jobs:
         run: pnpm build
 
       - name: Upload build artifact
-        if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
+        # if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.sha }}
           path: ./dist
           retention-days: 1
 
-  deploy:
+  deploy-gh-pages:
     needs: build
     environment:
       name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact from CI pipeline
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.run_id }}
+
+  deploy-aws:
+    needs: build
+    environment:
+      name: production
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact from CI pipeline
