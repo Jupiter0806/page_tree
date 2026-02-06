@@ -19,7 +19,11 @@ jobs:
   check:
     runs-on: ubuntu-latest
     outputs:
-      is-deploy-env: ${{ env.DEPLOY_ENV }}
+      is-deploy-env: ${{ steps.check-deploy-env.outputs.is-deploy-env }}
+    steps:
+      - name: Check if deploy environment
+        id: check-deploy-env
+        run: echo "is-deploy-env=${{ env.DEPLOY_ENV }}" >> $GITHUB_OUTPUT
 
   build:
     needs: check
