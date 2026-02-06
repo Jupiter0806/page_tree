@@ -46,7 +46,7 @@ jobs:
     # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
     concurrency:
       group: "pages"
-      cancel-in-progress: false
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact from CI pipeline
