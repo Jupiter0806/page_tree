@@ -1,9 +1,32 @@
 name: CI Pipeline
 
-on: [push]
+on:
+  push:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  DEPLOY_ENV: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/')) && github.event_name == 'workflow_dispatch' }}
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      is-deploy-env: ${{ steps.check-deploy-env.outputs.is-deploy-env }}
+    steps:
+      - name: Check if deploy environment
+        id: check-deploy-env
+        run: echo "is-deploy-env=${{ env.DEPLOY_ENV }}" >> $GITHUB_OUTPUT
+
   build:
+    needs: check
     runs-on: ubuntu-latest
 
     steps:
@@ -18,3 +41,60 @@ jobs:
 
       - name: build
         run: pnpm build
+
+      - name: Upload build artifact
+        if: needs.check.outputs.is-deploy-env == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: ./dist
+          retention-days: 1
+
+  deploy-gh-pages:
+    needs: [check, build]
+    if: needs.check.outputs.is-deploy-env == 'true'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+    # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact from CI pipeline
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.run_id }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-aws:
+    needs: [check, build]
+    if: needs.check.outputs.is-deploy-env == 'true'
+    environment:
+      name: production
+    concurrency:
+      group: "production-deployments"
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact from CI pipeline
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.run_id }}
