@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-  workflow_dispatch: # Enable manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
