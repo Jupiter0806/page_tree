@@ -73,3 +73,13 @@ export default defineConfig([
   },
 ])
 ```
+
+## Branching Strategy
+
+| Branch Type | Originates From | Merges Into | Purpose |
+| :--- | :--- | :--- | :--- |
+| Main | (Initial) | N/A | Production-ready code only. |
+| Dev | Main | Main (via Release) | Daily integration of new code. |
+| Feature | Dev | Dev | Building specific tasks/tickets. |
+| Release | Dev | Main & Dev | Final polish before a launch. |
+| Hotfix | Main | Main & Dev | Emergency production fixes. |
