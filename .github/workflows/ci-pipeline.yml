@@ -23,7 +23,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-    setps:
+    steps:
       - name: Upload build artifact
         # if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
         uses: actions/upload-artifact@v4
