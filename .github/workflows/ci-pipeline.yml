@@ -1,6 +1,8 @@
 name: CI Pipeline
 
-on: [push]
+on:
+  push:
+  workflow_dispatch: # Enable manual trigger
 
 jobs:
   build:
@@ -19,15 +21,23 @@ jobs:
       - name: build
         run: pnpm build
 
-  uploaded-artifact:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Upload build artifact
-        # if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
+        if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.sha }}
           path: ./dist
           retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Download artifact from CI pipeline
+        if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/releases/') }}
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.run_id }}
