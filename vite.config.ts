@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { name } from "./package.json";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,5 +10,9 @@ export default defineConfig({
       },
     }),
   ],
-  base: `/${name}/`,
+  // this is for dev with docer as the vite server needs to be accessible from outside the container
+  server: {
+    host: true,
+  },
+  base: process.env.VITE_BASE_PATH || "/",
 });
