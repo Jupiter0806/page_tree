@@ -1,0 +1,19 @@
+services:
+  dev:
+    build:
+      context: .
+      target: build
+    command: pnpm dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  app:
+    build: .
+    container_name: page-tree
+    ports:
+      - "8080:80"
