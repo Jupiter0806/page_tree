@@ -10,7 +10,7 @@ export function Tree() {
       <Branch folder={root} />
 
       <Form method="post" style={{ marginLeft: "auto", alignSelf: "end" }}>
-        <h3>Reset Folder</h3>
+        <h3>Reset Folder structure</h3>
         <button type="submit" name="type" value="reset">
           Reset
         </button>
