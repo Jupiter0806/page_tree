@@ -40,7 +40,9 @@ jobs:
         run: pnpm install
 
       - name: build
-        run: pnpm build
+        run: |
+          export VITE_BASE_PATH="/${GITHUB_REPOSITORY#*/}/"
+          pnpm build
 
       - name: Upload build artifact
         if: needs.check.outputs.is-deploy-env == 'true'
