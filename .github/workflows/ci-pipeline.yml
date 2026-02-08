@@ -86,7 +86,7 @@ jobs:
 
   deploy-aws:
     needs: [check, build]
-    # if: needs.check.outputs.is-deploy-env == 'true'
+    if: needs.check.outputs.is-deploy-env == 'true'
     environment:
       name: production
     concurrency:
