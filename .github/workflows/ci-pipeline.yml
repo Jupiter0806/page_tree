@@ -94,9 +94,61 @@ jobs:
       cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact from CI pipeline
-        uses: actions/download-artifact@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: dist-${{ github.sha }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.run_id }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag, and Push Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: playground/page-tree
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ap-southeast-2
+        with:
+          host: ${{ secrets.EC2_HOST }} # Your EC2 Public IP
+          username: ec2-user # or 'ec2-user' for Amazon Linux
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION
+          script: |
+            # Check if docker is installed
+            if ! command -v docker &> /dev/null; then
+              echo "Docker not found. Installing..."
+              sudo yum update -y
+              sudo yum install -y docker
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker $USER
+              sudo chmod 666 /var/run/docker.sock
+            fi
+
+            # Login to ECR on the EC2 instance
+            aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            # Pull the latest image
+            docker pull ${{ steps.login-ecr.outputs.registry }}/playground/page-tree:latest
+
+            # Stop and remove existing container (if any)
+            docker stop my-app-container || true
+            docker rm my-app-container || true
+
+            # Start the new container
+            docker run -d --name my-app-container -p 80:80 ${{ steps.login-ecr.outputs.registry }}/playground/page-tree:latest
