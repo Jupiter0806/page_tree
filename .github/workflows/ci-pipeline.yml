@@ -151,4 +151,4 @@ jobs:
             docker rm my-app-container || true
 
             # Start the new container
-            docker run -d --name my-app-container -p 80:80 ${{ steps.login-ecr.outputs.registry }}/playground/page-tree:latest
+            docker run -d --name my-app-container -p 8 443:4430:80 -p ${{ steps.login-ecr.outputs.registry }}/playground/page-tree:latest

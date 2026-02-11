@@ -17,3 +17,4 @@ services:
     container_name: page-tree
     ports:
       - "8080:80"
+      - "443:443"
